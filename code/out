@@ -1,0 +1,125 @@
+Starting DETR Fine-tuning Pipeline...
+Using device: cuda
+Output directory: ../output
+Loading image processor from checkpoint: facebook/detr-resnet-50
+Image processor loaded successfully.
+
+Preparing dataset file list...
+Found 290 total annotation files.
+Train files: 14, Test files: 276
+Train dataset size: 14
+Test dataset size: 276
+
+Checking one dataset item from training set...
+(Sampled item index 0)
+  Sample pixel_values shape: torch.Size([3, 800, 1066])
+  Sample labels: {'size': tensor([ 800, 1066]), 'image_id': tensor([0]), 'class_labels': tensor([2, 2]), 'boxes': tensor([[0.9164, 0.9344, 0.1672, 0.1312],
+        [0.8742, 0.9073, 0.2516, 0.1854]]), 'area': tensor([10993.1250,  8619.6094]), 'iscrowd': tensor([0, 0]), 'orig_size': tensor([480, 640])}
+Error loading/checking first sample: 
+Loading DETR model from checkpoint: facebook/detr-resnet-50
+Model loaded. Classification head replaced.
+
+Setting up training...
+
+Starting training...
+
+An error occurred during training: boxes1 must be in [x0, y0, x1, y1] (corner) format, but got tensor([[nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan],
+        [nan, nan, nan, nan]], device='cuda:0', dtype=torch.float16)

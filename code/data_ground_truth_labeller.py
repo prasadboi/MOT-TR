@@ -111,7 +111,7 @@ def draw_matches(img, objects1, objects2, matched_pairs):
 
     return img_draw
 
-def process_pair(img1_path, ann1_path, img2_path, ann2_path, output_ann_dir, visual_dir=None, visualize=False, iou_threshold=0.1):
+def process_pair(img1_path, ann1_path, img2_path, ann2_path, folder_name, output_ann_dir, visual_dir=None, visualize=False, iou_threshold=0.1):
     img1 = cv2.imread(img1_path)
     img2 = cv2.imread(img2_path)
     objects1 = parse_annotation_file(ann1_path)
@@ -130,7 +130,7 @@ def process_pair(img1_path, ann1_path, img2_path, ann2_path, output_ann_dir, vis
             matched_objects.append((objects1[i], objects2[j]))
 
     if matched_objects:
-        filename = f"{os.path.splitext(os.path.basename(img1_path))[0]}_match.txt"
+        filename = f"{folder_name}-{os.path.splitext(os.path.basename(img1_path))[0]}-{os.path.splitext(os.path.basename(img2_path))[0]}_match.txt"
         out_path = os.path.join(output_ann_dir, filename)
         with open(out_path, 'w') as f:
             for match_id, (obj1, obj2) in enumerate(matched_objects):
@@ -172,7 +172,9 @@ def run_pipeline(data_dir, output_ann_dir, visual_dir, batch_size=30, visualize_
             img2_path = os.path.join(data_dir, pair[2])
             ann2_path = os.path.join(data_dir, pair[3])
             visualize = pair in visual_batch
-            process_pair(img1_path, ann1_path, img2_path, ann2_path, output_ann_dir, visual_dir, visualize)
+            folder_name = os.path.basename(os.path.dirname(img1_path))
+            # print(f"Processing pair in folder '{folder_name}': {img1_path} and {img2_path}")
+            process_pair(img1_path, ann1_path, img2_path, ann2_path, folder_name, output_ann_dir, visual_dir, visualize)
 
     print(f"\nProcessed {len(lines)} image pairs in {total_batches} batches.")
 
