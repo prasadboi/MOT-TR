@@ -38,6 +38,7 @@ def main():
         all_annotation_files = [
             f for f in os.listdir(config.ANNOTATION_DIR) if f.endswith(".txt")
         ]
+        # print(all_annotation_files)
         if not all_annotation_files:
             raise ValueError(
                 f"No annotation files (.txt) found in {config.ANNOTATION_DIR}"
@@ -75,7 +76,6 @@ def main():
     )
     print(f"Train dataset size: {len(train_dataset)}")
     print(f"Test dataset size: {len(test_dataset)}")
-
     # Quick check of one dataset item
     print("\nChecking one dataset item from training set...")
     try:
@@ -87,15 +87,16 @@ def main():
             # Check if it's a valid item (pixel_values is not None)
             if sample and sample.get("pixel_values") is not None:
                 first_valid_idx = i
-                break  # Found the first valid one
+                if(first_valid_idx > 2):    
+                    break  # Found the first valid one
 
         if sample and sample.get("pixel_values") is not None:
             print(f"(Sampled item index {first_valid_idx})")
             print("  Sample pixel_values shape:", sample["pixel_values"].shape)
-            print("  Sample labels:", sample["labels"])
-            print("  Sample labels shape:", sample["labels"].shape)
-            print("  Sample boxes:", sample["boxes"])
-            print("  Sample boxes shape:", sample["boxes"].shape)
+            print("  Sample labels:", sample["labels"]["class_labels"].shape)
+            print("  Sample labels shape:", sample["labels"]["class_labels"].shape)
+            print("  Sample boxes:", sample["labels"]["boxes"])
+            print("  Sample boxes shape:", sample["labels"]["boxes"].shape)
         else:
             print("Could not load a valid sample item after checking initial items.")
             if len(train_dataset) > 0:
@@ -138,6 +139,7 @@ def main():
         seed=config.RANDOM_SEED,
     )
 
+    train_dataset[0]
     # Instantiate Trainer
     trainer = Trainer(
         model=model,

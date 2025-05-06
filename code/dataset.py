@@ -3,6 +3,7 @@
 import os
 import cv2
 import torch
+from collections.abc import Mapping
 from PIL import Image
 from torch.utils.data import (
     Dataset,
@@ -57,7 +58,8 @@ class MovedObjectDataset(Dataset):
 
         # 1. Parse Annotation File
         moved_objects = parse_annotation_file(ann_path)
-
+        if not moved_objects:
+            return self._get_dummy_item()
         # 2. Get Image Paths
         img1_path, img2_path = get_image_paths_from_annotation(
             ann_filename, self.image_dir
@@ -91,7 +93,7 @@ class MovedObjectDataset(Dataset):
             target = {"image_id": idx, "annotations": []}
             for obj in moved_objects:
                 x, y, w, h = obj["bbox"]
-                coco_bbox = [x, y, x + w, y + h]
+                coco_bbox = [x, y, x + w, x + h]
                 target["annotations"].append(
                     {
                         "bbox": coco_bbox,
@@ -146,8 +148,10 @@ class MovedObjectDataset(Dataset):
         # Ensure pixel_values is None to be filtered by collate_fn
         return {
             "pixel_values": None,
-            "labels": torch.tensor([], dtype=torch.long),
-            "boxes": torch.tensor([], dtype=torch.float32),
+            "labels": {
+                "class_labels": torch.tensor([], dtype=torch.long),
+                "boxes": torch.tensor([], dtype=torch.float32),
+            },
         }
 
 
@@ -181,18 +185,26 @@ class MovedObjectDataset(Dataset):
 #         return {"pixel_values": torch.empty(0), "labels": [], "boxes": []}
 
 def collate_fn(batch):
-    # filter out any None / invalid examples if you have that logic
-    valid_batch = [b for b in batch if b is not None]
+    valid = []
+    for item in batch:
+        if item["pixel_values"] is None:
+            # truly unusable example
+            continue
+        boxes = item["labels"]["boxes"]
+        # only drop examples with NaNs in the box tensor
+        if torch.isnan(boxes).any():
+            continue
+        # keep both non-empty *and* zero-object images
+        valid.append(item)
 
-    pixel_values = torch.stack([item["pixel_values"] for item in valid_batch])
+    if len(valid) == 0:
+        # Optional: you can either raise a clearer error or
+        # fall back to default collate to get a proper batch
+        raise RuntimeError("All examples in this batch were filtered out by collate_fn")
 
-    # now a list of dicts, each with "class_labels" & "boxes"
-    labels = [item["labels"] for item in valid_batch]
-
-    return {
-        "pixel_values": pixel_values,
-        "labels":       labels,
-    }
+    pixel_values = torch.stack([i["pixel_values"] for i in valid])
+    labels       = [i["labels"] for i in valid]
+    return {"pixel_values": pixel_values, "labels": labels}
 
 
 # --- Main block for testing Dataset and Collate Function ---
@@ -257,9 +269,11 @@ if __name__ == "__main__":
             print("Successfully loaded first item:")
             print(f"  pixel_values shape: {item['pixel_values'].shape}")
             print(f"  labels: {item['labels']}")
-            print(f"  labels shape: {item['labels'].shape}")
-            print(f"  boxes: {item['boxes']}")
-            print(f"  boxes shape: {item['boxes'].shape}")
+            if 'boxes' in item['labels']:
+                print(f"  boxes: {item['labels']['boxes']}")
+                print(f"  boxes shape: {item['labels']['boxes'].shape}")
+            else:
+                print("  No boxes found in labels.")
         elif item and item.get("pixel_values") is None:
             print(
                 "First item loaded as a dummy item (pixel_values is None). Check logs for warnings."
@@ -299,18 +313,17 @@ if __name__ == "__main__":
                     f"    pixel_values shape: {collated_batch['pixel_values'].shape}"
                 )  # Should be [Valid_Batch_Size, C, H, W]
                 print(
-                    f"    Number of label tensors: {len(collated_batch['labels'])}"
-                )  # Should match Valid_Batch_Size
-                print(
-                    f"    Number of box tensors: {len(collated_batch['boxes'])}"
+                    f"    Number of label dicts: {len(collated_batch['labels'])}"
                 )  # Should match Valid_Batch_Size
                 # Print shape of first label/box tensor if available
                 if collated_batch["labels"]:
-                    print(
-                        f"Shape of first labels tensor: {collated_batch['labels'][0]=}"
-                    )
-                if collated_batch["boxes"]:
-                    print(f"Shape of first boxes tensor: {collated_batch['boxes'][0]}")
+                    first_labels = collated_batch["labels"][0]
+                    if "boxes" in first_labels:
+                        print(
+                            f"Shape of first boxes tensor: {first_labels['boxes'].shape}"
+                        )
+                    else:
+                        print("First label dict does not contain 'boxes'.")
             elif collated_batch and collated_batch.get("pixel_values").numel() == 0:
                 print(
                     "  Collate function returned an empty batch (likely all input items were invalid)."
@@ -340,8 +353,13 @@ if __name__ == "__main__":
         first_dl_batch = next(iter(test_loader))
         print("Successfully retrieved first batch from DataLoader:")
         print(f"  pixel_values shape: {first_dl_batch['pixel_values'].shape}")
-        print(f"  Number of label tensors: {len(first_dl_batch['labels'])}")
-        print(f"  Number of box tensors: {len(first_dl_batch['boxes'])}")
+        print(f"  Number of label dicts: {len(first_dl_batch['labels'])}")
+        if first_dl_batch["labels"]:
+            first_labels = first_dl_batch["labels"][0]
+            if "boxes" in first_labels:
+               print(f"Shape of first boxes tensor: {first_labels['boxes'].shape}")
+            else:
+                print("First label dict does not contain 'boxes'.")
     except StopIteration:
         print(
             "DataLoader iteration finished unexpectedly (maybe dataset was empty or all items failed)."

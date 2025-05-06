@@ -61,13 +61,14 @@ class FeaturePreprocessing:
             return None
 
         # cv2.resize expects (width, height)
-        img_resized = cv2.resize(img, self.target_size, interpolation=cv2.INTER_LINEAR)
+        # img_resized = cv2.resize(img, self.target_size, interpolation=cv2.INTER_LINEAR)
 
         if display:
             filename = os.path.basename(img_path).split('.')[0]
-            self._save_image(img_resized, f"{filename}_resized")
+            # self._save_image(img_resized, f"{filename}_resized")
+            self._save_image(img, f"{filename}_unresized")
 
-        return img_resized # Returns BGR numpy array
+        return img # Returns BGR numpy array
 
     def compute_difference(self, img1, img2, img1_path=None, img2_path=None, display=False):
         """
