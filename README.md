@@ -1,6 +1,25 @@
 # DETR Fine-tuning Pipeline for Moved Object Detection
 
-This repository provides a complete pipeline for fine-tuning [DETR (DEtection TRansformer)](https://arxiv.org/abs/2005.12872) on a custom dataset for moved object detection. The pipeline includes dataset preparation, feature preprocessing, model training, and evaluation.
+This repository provides a robust, reproducible pipeline for fine-tuning [DETR (DEtection TRansformer)](https://arxiv.org/abs/2005.12872) on custom datasets for moved object detection. The pipeline covers dataset preparation, preprocessing (including image diffs), model adaptation, staged training, evaluation, and analysis.
+
+For a comprehensive technical explanation, see [docs/detr_training_pipeline_report.md](docs/detr_training_pipeline_report.md).
+
+---
+
+## Table of Contents
+
+- [DETR Fine-tuning Pipeline for Moved Object Detection](#detr-fine-tuning-pipeline-for-moved-object-detection)
+  - [Table of Contents](#table-of-contents)
+  - [Project Structure](#project-structure)
+  - [Setup \& Requirements](#setup--requirements)
+  - [Dataset \& Annotation Format](#dataset--annotation-format)
+  - [Pipeline Usage](#pipeline-usage)
+    - [1. Ground Truth Annotation](#1-ground-truth-annotation)
+    - [2. Configure the Pipeline](#2-configure-the-pipeline)
+    - [3. Training](#3-training)
+    - [4. Evaluation \& Results](#4-evaluation--results)
+  - [Key Features](#key-features)
+  - [References](#references)
 
 ---
 
@@ -23,6 +42,8 @@ This repository provides a complete pipeline for fine-tuning [DETR (DEtection TR
 │   ├── models/                 # Saved fine-tuned models
 │   ├── logs/                   # Training logs
 │   └── ...                     # Other outputs
+├── docs/
+│   └── detr_training_pipeline_report.md # Full technical report
 ├── README.md
 ```
 
@@ -33,6 +54,7 @@ This repository provides a complete pipeline for fine-tuning [DETR (DEtection TR
 **Python version:** 3.8+
 
 **Required packages:**
+
 ```bash
 pip install torch torchvision transformers scikit-learn opencv-python pillow tqdm matplotlib
 pip install torchmetrics  # Optional, for advanced evaluation metrics
@@ -40,96 +62,83 @@ pip install torchmetrics  # Optional, for advanced evaluation metrics
 
 ---
 
-## Usage
+## Dataset & Annotation Format
 
-### 1. Ground Truth Annotation (if needed)
+- **Images:** Place raw images in `data/base/cv_data_hw2/data/`.
+- **Annotations:** Each image must have a corresponding `.txt` file in `data/matched_annotations/`.
+- **Annotation file format:** Each line encodes one object:
 
-Run the annotation tool to create bounding box labels:
+  ```
+  <class_id> <x_center> <y_center> <width> <height>
+  ```
+
+  - All coordinates are normalized to [0, 1] relative to image dimensions.
+  - Example:
+
+    ```
+    0 0.512 0.433 0.120 0.210
+    2 0.700 0.600 0.100 0.150
+    ```
+
+---
+
+## Pipeline Usage
+
+### 1. Ground Truth Annotation
+
+If you need to create bounding box labels:
+
 ```bash
 python code/ground_truth_labeller.py --image_dir /path/to/images --output_dir /path/to/save/annotations
 ```
+
 - Draw bounding boxes with your mouse
 - Press `s` to save, `n` for next image, `q` to quit
-- Annotations are saved as `.txt` files with format: `x y w h 1` (coordinates and class label)
+- Annotations are saved as `.txt` files in the format above
 
 ### 2. Configure the Pipeline
 
 Edit `code/config.py` to set:
-- Data paths
-- Model parameters
-- Training hyperparameters (batch size, learning rate, etc.)
 
-### 3. Train the Model
+- Data paths
+- Model parameters (e.g., number of classes)
+- Training hyperparameters (batch size, learning rate, epochs, etc.)
+- Output/logging directories
+
+### 3. Training
+
+Run the training script:
 
 ```bash
 python code/train.py
 ```
 
-The script will:
-- Load and preprocess the dataset
-- Initialize the DETR model
-- Train and evaluate the model
-- Save checkpoints to `output/models/`
+- The pipeline supports staged training (freezing/unfreezing layers, learning rate scheduling, gradient accumulation).
+- Training and validation splits are handled automatically.
 
-### 4. Evaluate & Visualize Results
+### 4. Evaluation & Results
 
-```bash
-python code/train.py --eval_only --model_path output/models/your_model.pth
-```
-
-This will:
-- Load your trained model
-- Run evaluation on the test set
-- Calculate mAP metrics (if torchmetrics is installed)
-- Display qualitative results with bounding box visualizations
+- Evaluation metrics (loss, precision, recall, F1) are logged and visualized via TensorBoard.
+- Model checkpoints are saved in `output/models/`.
+- For detailed analysis and troubleshooting, see the [technical report](docs/detr_training_pipeline_report.md).
 
 ---
 
-## Advanced Usage
+## Key Features
 
-### Feature Preprocessing
-
-The pipeline includes a `FeaturePreprocessing` class that:
-- Performs image differencing between pairs
-- Handles resizing and normalization
-- Prepares features for the DETR model
-
-### Custom Dataset
-
-The `MovedObjectDataset` class:
-- Loads image pairs and annotations
-- Applies feature preprocessing
-- Converts annotations to DETR format
-
-### Training Configuration
-
-Key parameters in `config.py`:
-- `BATCH_SIZE`: Adjust based on your GPU memory
-- `NUM_EPOCHS`: Training duration
-- `LEARNING_RATE`: Default is 5e-5
-- `WEIGHT_DECAY`: Default is 1e-4
+- **Image Diff Preprocessing:** Enhances detection of moved objects by using pixel-wise differences between "before" and "after" images.
+- **Custom Dataset Loader:** Handles annotation parsing, image loading, and preprocessing.
+- **Flexible Training:** Supports staged training, gradient accumulation, and learning rate scheduling.
+- **Comprehensive Evaluation:** Quantitative (loss, precision, recall, F1) and qualitative (visualizations) analysis.
+- **Reproducibility:** Configurable random seeds, clear directory structure, and logging.
 
 ---
 
-## Troubleshooting
+## References
 
-- **No annotation files found:**  
-  Ensure your annotation `.txt` files are in the correct directory and match the expected format.
-
-- **CUDA out of memory:**  
-  Lower the batch size in `config.py`.
-
-- **OpenCV window not showing:**  
-  If running in a remote environment, OpenCV GUI windows may not work. Run the labeller locally.
+- [DETR: End-to-End Object Detection with Transformers](https://arxiv.org/abs/2005.12872)
+- [HuggingFace Transformers Documentation](https://huggingface.co/docs/transformers/)
+- [COCO Dataset Format](https://cocodataset.org/#format-data)
+- [Full Technical Report](docs/detr_training_pipeline_report.md)
 
 ---
-
-## Acknowledgements
-
-- [DETR: End-to-End Object Detection with Transformers](https://github.com/facebookresearch/detr)
-- [HuggingFace Transformers](https://huggingface.co/docs/transformers/main/en/model_doc/detr)
-- [torchmetrics](https://torchmetrics.readthedocs.io/en/stable/)
-
----
-
-**For questions or issues, please open an issue or contact the maintainer.**

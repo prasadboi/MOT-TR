@@ -28,15 +28,15 @@ NUM_CLASSES = 6 # 0: Unknown, 1: Person, 2: Car, 3: Other Vehicle, 4: Other Obje
 # Model head will have NUM_CLASSES + 1 outputs (extra for 'no object' which has been shown as Unknown in the dataset)
 
 # --- Training Parameters ---
-TRAIN_TEST_SPLIT = 0.95 # create a very small set of training samples for testing
+TRAIN_TEST_SPLIT = 0.2 # create a very small set of training samples for testing
 # TRAIN_TEST_SPLIT = 0.20 # for main training run
 BATCH_SIZE = 1 # For testing
-# BATCH_SIZE = 4 # For main training run
+# BATCH_SIZE = 2 # For main training run
 LEARNING_RATE = 1e-5
 WEIGHT_DECAY = 1e-4
-NUM_EPOCHS = 10
-GRAD_ACCUM_STEPS = 1 # For testing
-# GRAD_ACCUM_STEPS = 2 # For main training run
+NUM_EPOCHS = 1
+# GRAD_ACCUM_STEPS = 1 # For testing
+GRAD_ACCUM_STEPS = 4 # For main training run
 RANDOM_SEED = 42
 DATALOADER_NUM_WORKERS = 2 # Number of workers for DataLoader
 
@@ -47,7 +47,8 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Add any evaluation-specific configurations here if needed, e.g., IoU threshold
 EVAL_THRESHOLD = 0.5 # Confidence threshold for post-processing detections
 
-
+# --- VISUALIZATION ---
+VISUALIZATION_DIRECTORY = f"{OUTPUT_DIR}/visualization"
 # --- Main block for testing configuration values ---
 if __name__ == "__main__":
     print("--- Configuration Settings ---")
