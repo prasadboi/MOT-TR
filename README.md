@@ -89,7 +89,7 @@ pip install torchmetrics  # Optional, for advanced evaluation metrics
 If you need to create bounding box labels:
 
 ```bash
-python code/ground_truth_labeller.py --image_dir /path/to/images --output_dir /path/to/save/annotations
+python code/ground_truth_labeller.py
 ```
 
 - Draw bounding boxes with your mouse
